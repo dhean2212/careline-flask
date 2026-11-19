@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareLine - Klinik Queue System V4.5</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --sidebar: #0b0f19;
+      --sidebar-text: #94a3b8;
+      --text: #f8fafc;
+      --gray: #94a3b8;
+      --border: #1f2937;
+      --list-bg: #1f2937;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --light-blue: #1e293b;
+    }
+    body.light {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --sidebar: #172554;
+      --sidebar-text: #cbd5e1;
+      --text: #1e293b;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --list-bg: #f8fafc;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --orange: #d97706;
+      --red: #dc2626;
+      --light-blue: #eff6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 235px; background: var(--sidebar); padding: 28px 14px 20px;
+      display: flex; flex-direction: column; flex-shrink: 0;
+    }
+    .brand { color: #ffffff; font-size: 24px; font-weight: bold; padding: 0 12px; }
+    .brand-sub { color: #93c5fd; font-size: 10px; padding: 4px 12px 26px; letter-spacing: 1px; }
+    .nav-btn {
+      width: 100%; text-align: left; background: transparent; color: var(--sidebar-text);
+      border: none; padding: 13px 16px; border-radius: 8px; font-size: 14px;
+      cursor: pointer; margin-bottom: 6px; transition: 0.2s;
+    }
+    .nav-btn:hover { background: var(--blue); color: #ffffff; }
+    .nav-btn.active { background: var(--blue); color: #ffffff; font-weight: bold; }
+    .spacer { flex: 1; }
+    .side-action {
+      width: 100%; border: none; border-radius: 8px; padding: 10px 14px;
+      font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 8px;
+    }
+    .btn-theme { background: var(--light-blue); color: var(--text); }
+    .btn-reset { background: var(--red); color: #ffffff; }
+
+    /* Main Content */
+    .main { flex: 1; padding: 26px 32px; overflow-y: auto; }
+    .page { display: none; animation: slideIn 0.25s ease-out; }
+    .page.active { display: block; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h1 { font-size: 26px; margin-bottom: 4px; }
+    .subtitle { color: var(--gray); font-size: 13px; margin-bottom: 18px; }
+    .section-title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-transform: uppercase; }
+
+    .clock-box { margin-bottom: 14px; }
+    .clock-label { font-size: 11px; font-weight: bold; color: var(--gray); }
+    .clock-time { font-size: 22px; font-weight: bold; color: var(--blue); }
+    .clock-date { font-size: 12px; color: var(--gray); }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .stat-title { font-size: 11px; font-weight: bold; color: var(--gray); }
+    .stat-val { font-size: 24px; font-weight: bold; margin-top: 6px; }
+    .c-blue { color: var(--blue); }
+    .c-green { color: var(--green); }
+    .c-orange { color: var(--orange); }
+
+    .aktif-card { text-align: center; padding: 18px 14px; }
+    .aktif-label { font-size: 12px; font-weight: bold; }
+    .aktif-num { font-size: 36px; font-weight: bold; margin-top: 8px; }
+
+    @keyframes pulseColor {
+      0% { transform: scale(1); color: #38bdf8; }
+      25% { transform: scale(1.08); color: #4ade80; }
+      50% { transform: scale(1); color: #fbbf24; }
+      75% { transform: scale(1.06); color: #f43f5e; }
+      100% { transform: scale(1); }
+    }
+    .pulse-anim { animation: pulseColor 0.7s ease; }
+
+    .btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+    .act-btn {
+      border: none; border-radius: 8px; padding: 11px 14px; color: #ffffff;
+      font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.15s;
+    }
+    .act-btn:hover { filter: brightness(0.92); }
+    .bg-blue { background: var(--blue); }
+    .bg-green { background: var(--green); }
+    .bg-orange { background: var(--orange); }
+    .bg-red { background: var(--red); }
+
+    /* Daftar Antrean & Riwayat */
+    .list-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .list-box {
+      background: var(--list-bg); border-radius: 8px; padding: 12px;
+      min-height: 300px; max-height: 440px; overflow-y: auto; margin-top: 10px;
+    }
+    .list-item {
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+      font-weight: bold; font-size: 14px;
+    }
+    .list-item:last-child { border-bottom: none; }
+
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+    .search-input {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; font-size: 13px; width: 220px;
+    }
+    .filter-btn {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px; font-weight: bold; font-size: 12px; cursor: pointer;
+    }
+    .filter-btn.active { background: var(--blue); color: #ffffff; border-color: var(--blue); }
+
+    /* Modal Struk */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-wrap { width: 390px; background: #e9eef5; border-radius: 12px; padding: 16px; }
+    .struk-preview {
+      background: #ffffff; color: #0f172a; border: 1px solid #d1d5db;
+      padding: 20px; text-align: center; margin-bottom: 14px;
+    }
+    .sp-klinik { font-size: 15px; font-weight: bold; text-transform: uppercase; }
+    .sp-alamat { font-size: 11px; font-style: italic; color: #64748b; margin: 4px 0 12px; }
+    .sp-line { border-top: 1px dashed #cbd5e1; margin: 12px 0; }
+    .sp-label { font-size: 14px; color: #334155; }
+    .sp-kat { font-size: 13px; font-weight: bold; margin-top: 2px; }
+    .sp-num { font-family: "Times New Roman", serif; font-size: 52px; font-weight: bold; margin: 14px 0; }
+    .sp-pesan { font-size: 11px; font-style: italic; color: #475569; margin-bottom: 4px; }
+    .sp-waktu { font-size: 11px; color: #475569; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-close-modal {
+      background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1;
+      border-radius: 8px; padding: 10px; font-size: 13px; cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .grid-4, .grid-3, .btn-row { grid-template-columns: 1fr; }
+      body { flex-direction: column; }
+      .sidebar { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">CareLine</div>
+    <div class="brand-sub">KLINIK SYSTEM V4.5</div>
+    <button class="nav-btn active" data-page="dashboard" onclick="bukaHalaman('dashboard')">Dashboard</button>
+    <button class="nav-btn" data-page="antrean" onclick="bukaHalaman('antrean')">Daftar Antrean</button>
+    <button class="nav-btn" data-page="riwayat" onclick="bukaHalaman('riwayat')">Riwayat Antrean</button>
+    <div class="spacer"></div>
+    <button id="btnTheme" class="side-action btn-theme" onclick="gantiTema()">☀️ Light Mode</button>
+    <button class="side-action btn-reset" onclick="resetSemua()">Reset Semua</button>
+  </aside>
+
+  <main class="main">
+    <!-- HALAMAN DASHBOARD -->
+    <section id="page-dashboard" class="page active">
+      <h1>Dashboard Klinik</h1>
+      <p class="subtitle">Sistem Manajemen Antrean Pasien Klinik V4.5.</p>
+
+      <div class="clock-box">
+        <div class="clock-label">WAKTU SEKARANG</div>
+        <div id="jamNow" class="clock-time">00:00:00</div>
+        <div id="tglNow" class="clock-date">00-00-0000</div>
+      </div>
+
+      <div class="grid-4">
+        <div class="card">
+          <div class="stat-title">Menunggu Umum</div>
+          <div id="statUmum" class="stat-val c-blue">0</div>
+        </div>
+        <div class="card">
+          <div class="stat-title">Menunggu Asuransi</div>
+          <div id="statAsuransi" class="stat-val c-green">0</div>
+        </div>
+        <div class="card">
+          <div class="stat-title">Menunggu BPJS</div>
+          <div id="statBpjs" class="stat-val c-orange">0</div>
+        </div>
+        <div class="card">
+          <div class="stat-title">Total Dilayani</div>
+          <div id="statDilayani" class="stat-val">0</div>
+        </div>
+      </div>
+
+      <div class="section-title">Nomor Antrean Aktif</div>
+      <div class="grid-3">
+        <div class="card aktif-card">
+          <div class="aktif-label c-blue">AKTIF: UMUM</div>
+          <div id="aktifUmum" class="aktif-num c-blue">-</div>
+        </div>
+        <div class="card aktif-card">
+          <div class="aktif-label c-green">AKTIF: ASURANSI</div>
+          <div id="aktifAsuransi" class="aktif-num c-green">-</div>
+        </div>
+        <div class="card aktif-card">
+          <div class="aktif-label c-orange">AKTIF: BPJS</div>
+          <div id="aktifBpjs" class="aktif-num c-orange">-</div>
+        </div>
+      </div>
+
+      <div class="section-title">Ambil Nomor Antrean</div>
+      <div class="btn-row">
+        <button class="act-btn bg-blue" onclick="ambilNomor('Umum')">+ Ambil &amp; Print Umum</button>
+        <button class="act-btn bg-green" onclick="ambilNomor('Asuransi')">+ Ambil &amp; Print Asuransi</button>
+        <button class="act-btn bg-orange" onclick="ambilNomor('BPJS')">+ Ambil &amp; Print BPJS</button>
+      </div>
+
+      <div class="section-title">Kontrol Pemanggilan</div>
+      <div class="btn-row">
+        <button class="act-btn bg-blue" onclick="aksiPanggil('panggil', 'Umum')">Panggil Umum</button>
+        <button class="act-btn bg-green" onclick="aksiPanggil('panggil', 'Asuransi')">Panggil Asuransi</button>
+        <button class="act-btn bg-orange" onclick="aksiPanggil('panggil', 'BPJS')">Panggil BPJS</button>
+      </div>
+      <div class="btn-row">
+        <button class="act-btn bg-blue" onclick="aksiPanggil('panggil-ulang', 'Umum')">Panggil Ulang Umum</button>
+        <button class="act-btn bg-green" onclick="aksiPanggil('panggil-ulang', 'Asuransi')">Panggil Ulang Asuransi</button>
+        <button class="act-btn bg-orange" onclick="aksiPanggil('panggil-ulang', 'BPJS')">Panggil Ulang BPJS</button>
+     </div>
+    </section>
+
+    <!-- HALAMAN DAFTAR ANTREAN -->
+    <section id="page-antrean" class="page">
+      <h1>Daftar Antrean Menunggu</h1>
+      <p class="subtitle">Daftar nomor antrean pasien yang sedang menunggu.</p>
+      <div class="grid-3">
+        <div class="list-card">
+          <div class="aktif-label c-blue">Kategori: UMUM</div>
+          <div id="listUmum" class="list-box"></div>
+        </div>
+        <div class="list-card">
+          <div class="aktif-label c-green">Kategori: ASURANSI</div>
+          <div id="listAsuransi" class="list-box"></div>
+        </div>
+        <div class="list-card">
+          <div class="aktif-label c-orange">Kategori: BPJS</div>
+          <div id="listBpjs" class="list-box"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HALAMAN RIWAYAT ANTREAN -->
+    <section id="page-riwayat" class="page">
+      <h1>Riwayat Antrean Klinik</h1>
+      <p class="subtitle">Daftar seluruh nomor antrean yang sudah dipanggil hari ini.</p>
+
+      <div class="filter-bar">
+        <input id="cariRiwayat" class="search-input" type="text" placeholder="Cari nomor (mis. U001)..." oninput="muatState()" />
+        <button class="filter-btn active" data-kat="Semua" onclick="pilihFilter('Semua')">Semua</button>
+        <button class="filter-btn" data-kat="Umum" onclick="pilihFilter('Umum')">Umum</button>
+        <button class="filter-btn" data-kat="Asuransi" onclick="pilihFilter('Asuransi')">Asuransi</button>
+        <button class="filter-btn" data-kat="BPJS" onclick="pilihFilter('BPJS')">BPJS</button>
+      </div>
+
+      <div class="list-card" style="margin-bottom: 14px;">
+        <h3>Log Pemanggilan Pasien</h3>
+        <div id="listRiwayat" class="list-box"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="act-btn bg-green" onclick="eksporLaporan()">📁 Ekspor Laporan (.txt)</button>
+        <button class="act-btn bg-blue" onclick="document.getElementById('fileImpor').click()">📂 Impor Laporan (.txt)</button>
+        <input id="fileImpor" type="file" accept=".txt" style="display:none;" onchange="imporLaporan(event)" />
+      </div>
+    </section>
+  </main>
+
+  <!-- POPUP STRUK ANTREAN -->
+  <div id="modalStruk" class="modal-backdrop">
+    <div class="modal-wrap">
+      <div class="struk-preview">
+        <div id="spKlinik" class="sp-klinik"></div>
+        <div id="spAlamat" class="sp-alamat"></div>
+        <div class="sp-line"></div>
+        <div class="sp-label">Nomor Antrian</div>
+        <div id="spKat" class="sp-kat"></div>
+        <div id="spNum" class="sp-num"></div>
+        <div id="spPesan" class="sp-pesan"></div>
+        <div id="spWaktu" class="sp-waktu"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="act-btn bg-blue" onclick="cetakStruk80mm()">Print</button>
+        <button class="btn-close-modal" onclick="tutupModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let halamanAktif = "dashboard";
+    let filterKategori = "Semua";
+    let strukAktif = null;
+    let lastPulseSeq = 0;
+
+    function bukaHalaman(nama) {
+      halamanAktif = nama;
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById("page-" + nama).classList.add("active");
+      document.querySelectorAll(".nav-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.page === nama);
+      });
+      muatState();
+    }
+
+    function pilihFilter(kat) {
+      filterKategori = kat;
+      document.querySelectorAll(".filter-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.kat === kat);
+      });
+      muatState();
+    }
+
+    function terapkanTema(theme) {
+      document.body.classList.toggle("light", theme === "light");
+      document.getElementById("btnTheme").textContent = theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode";
+    }
+
+    function picuAnimasi(kategori) {
+      const mapId = { Umum: "aktifUmum", Asuransi: "aktifAsuransi", BPJS: "aktifBpjs" };
+      const el = document.getElementById(mapId[kategori]);
+      if (!el) return;
+      el.classList.remove("pulse-anim");
+      void el.offsetWidth;
+      el.classList.add("pulse-anim");
+    }
+
+    function renderPayload(data) {
+      terapkanTema(data.theme);
+      document.getElementById("jamNow").textContent = data.jam;
+      document.getElementById("tglNow").textContent = data.tanggal;
+
+      document.getElementById("statUmum").textContent = data.stats.Umum;
+      document.getElementById("statAsuransi").textContent = data.stats.Asuransi;
+      document.getElementById("statBpjs").textContent = data.stats.BPJS;
+      document.getElementById("statDilayani").textContent = data.stats.dilayani;
+
+      document.getElementById("aktifUmum").textContent = data.aktif.Umum;
+      document.getElementById("aktifAsuransi").textContent = data.aktif.Asuransi;
+      document.getElementById("aktifBpjs").textContent = data.aktif.BPJS;
+
+      if (data.pulse && data.pulse.seq > lastPulseSeq) {
+        lastPulseSeq = data.pulse.seq;
+        picuAnimasi(data.pulse.kategori);
+      }
+
+      const renderList = (id, items, formatter) => {
+        const box = document.getElementById(id);
+        if (!box) return;
+        if (!items.length) {
+          box.innerHTML = '<div class="list-item" style="color:var(--gray);font-weight:normal;">Kosong</div>';
+          return;
+        }
+        box.innerHTML = items.map(x => `<div class="list-item">${formatter(x)}</div>`).join("");
+      };
+
+      renderList("listUmum", data.antrean.Umum, x => `    ${x.nomor}`);
+      renderList("listAsuransi", data.antrean.Asuransi, x => `    ${x.nomor}`);
+      renderList("listBpjs", data.antrean.BPJS, x => `    ${x.nomor}`);
+      renderList("listRiwayat", data.riwayat, x => `    ${x.nomor} | Kategori: ${x.kategori}    [${x.waktu}]`);
+    }
+
+    async function muatState() {
+      const cari = document.getElementById("cariRiwayat")?.value || "";
+      const res = await fetch(`/api/state?kategori=${encodeURIComponent(filterKategori)}&cari=${encodeURIComponent(cari)}`);
+      const data = await res.json();
+      renderPayload(data);
+    }
+
+    async function gantiTema() {
+      const res = await fetch("/api/theme", { method: "POST" });
+      const data = await res.json();
+      renderPayload(data);
+    }
+
+    async function ambilNomor(kategori) {
+      const res = await fetch("/api/ambil", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kategori }),
+      });
+      const data = await res.json();
+      renderPayload(data);
+      if (data.struk) {
+        strukAktif = data.struk;
+        document.getElementById("spKlinik").textContent = data.struk.klinik;
+        document.getElementById("spAlamat").textContent = data.struk.alamat;
+        document.getElementById("spKat").textContent = data.struk.kategori.toUpperCase();
+        document.getElementById("spNum").textContent = data.struk.nomor;
+        document.getElementById("spPesan").textContent = data.struk.pesan;
+        document.getElementById("spWaktu").textContent = data.struk.waktu_indo;
+        document.getElementById("modalStruk").classList.add("open");
+      }
+    }
+
+    function tutupModal() {
+      document.getElementById("modalStruk").classList.remove("open");
+    }
+
+    function cetakStruk80mm() {
+      if (!strukAktif) return;
+      const params = new URLSearchParams({
+        nomor: strukAktif.nomor,
+        kategori: strukAktif.kategori,
+        waktu: strukAktif.waktu_indo,
+      });
+      window.open(`/struk?${params.toString()}`, "_blank");
+    }
+
+    async function aksiPanggil(endpoint, kategori) {
+      const res = await fetch(`/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kategori }),
+      });
+      const data = await res.json();
+      if (data.message && !data.stats) {
+        alert(data.message);
+        return;
+      }
+      renderPayload(data);
+      if (data.message && endpoint === "lewati") {
+        alert(data.message);
+      }
+    }
+
+    async function resetSemua() {
+      if (!confirm("Apakah Anda yakin ingin mereset seluruh data antrean?")) return;
+      const res = await fetch("/api/reset", { method: "POST" });
+      const data = await res.json();
+      renderPayload(data);
+      if (data.message) alert(data.message);
+    }
+
+    async function eksporLaporan() {
+      const res = await fetch("/api/ekspor");
+      if (!res.ok) {
+        const msg = await res.text();
+        alert(msg);
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match ? match[1] : "Laporan_Klinik_CareLine.txt";
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function imporLaporan(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/impor", { method: "POST", body: formData });
+      const data = await res.json();
+      renderPayload(data);
+      if (data.message) alert(data.message);
+      event.target.value = "";
+    }
+
+    setInterval(() => {
+      if (halamanAktif === "dashboard") muatState();
+    }, 1000);
+
+    muatState();
+  </script>
+</body>
+</html>
